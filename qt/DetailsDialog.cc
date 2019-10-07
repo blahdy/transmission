@@ -933,6 +933,20 @@ void DetailsDialog::refresh()
         int baselineInt;
         Torrent const& baseline = *torrents.front();
 
+        // mySequentialCheck
+        uniform = true;
+        baselineFlag = baseline.sequentialDownload();
+        for (Torrent const* const tor : torrents)
+        {
+            if (baselineFlag != tor->sequentialDownload())
+            {
+                uniform = false;
+                break;
+            }
+        }
+
+        ui.sequentialCheck->setChecked(uniform && baselineFlag);
+
         // mySessionLimitCheck
         uniform = true;
         baselineFlag = baseline.honorsSessionLimits();
@@ -1286,6 +1300,12 @@ void DetailsDialog::onIdleLimitChanged()
     }
 }
 
+void DetailsDialog::onSequentialToggled (bool val)
+{
+    mySession.torrentSet(myIds, TR_KEY_sequentialDownload, val);
+    getNewData();
+}
+
 void DetailsDialog::onRatioModeChanged(int index)
 {
     int const val = ui.ratioCombo->itemData(index).toInt();
@@ -1450,6 +1470,7 @@ void DetailsDialog::initOptionsTab()
     connect(ui.idleSpin, SIGNAL(editingFinished()), SLOT(onSpinBoxEditingFinished()));
     connect(ui.idleSpin, SIGNAL(valueChanged(int)), SLOT(onIdleLimitChanged()));
     connect(ui.peerLimitSpin, SIGNAL(editingFinished()), SLOT(onSpinBoxEditingFinished()));
+    connect(ui.sequentialCheck, SIGNAL(clicked(bool)), SLOT(onSequentialToggled(bool)));
 }
 
 /***

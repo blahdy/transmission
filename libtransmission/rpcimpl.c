@@ -784,6 +784,10 @@ static void addField(tr_torrent* const tor, tr_info const* const inf, tr_stat co
         tr_variantDictAddInt(d, key, tr_torrentGetRatioMode(tor));
         break;
 
+    case TR_KEY_sequentialDownload:
+        tr_variantDictAddBool(d, key, tr_torrentGetSequentialDownload(tor));
+        break;
+
     case TR_KEY_sizeWhenDone:
         tr_variantDictAddInt(d, key, st->sizeWhenDone);
         break;
@@ -1404,6 +1408,11 @@ static char const* torrentSet(tr_session* session, tr_variant* args_in, tr_varia
         if (tr_variantDictFindInt(args_in, TR_KEY_queuePosition, &tmp))
         {
             tr_torrentSetQueuePosition(tor, tmp);
+        }
+
+        if (tr_variantDictFindBool(args_in, TR_KEY_sequentialDownload, &boolVal))
+        {
+            tr_torrentSetSequentialDownload(tor, boolVal);
         }
 
         if (errmsg == NULL && tr_variantDictFindList(args_in, TR_KEY_trackerAdd, &tmp_variant))
