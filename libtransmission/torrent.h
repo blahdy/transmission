@@ -243,6 +243,8 @@ struct tr_torrent
     uint16_t idleLimitMinutes;
     tr_idlelimit idleLimitMode;
     bool finishedSeedingByIdle;
+    
+    bool sequentialDownload;
 
     tr_ptrArray labels;
 };
