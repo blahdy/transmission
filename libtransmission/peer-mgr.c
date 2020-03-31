@@ -1774,7 +1774,7 @@ static void peerCallbackFunc(tr_peer* peer, tr_peer_event const* e, void* vs)
 
             tor->uploadedCur += e->length;
             tr_announcerAddBytes(tor, TR_ANN_UP, e->length);
-            tr_torrentSetActivityDate(tor, now);
+            tr_torrentSetDateActive(tor, now);
             tr_torrentSetDirty(tor);
             tr_statsAddUploaded(tor->session, e->length);
 
@@ -1792,7 +1792,7 @@ static void peerCallbackFunc(tr_peer* peer, tr_peer_event const* e, void* vs)
             tr_torrent* tor = s->tor;
 
             tor->downloadedCur += e->length;
-            tr_torrentSetActivityDate(tor, now);
+            tr_torrentSetDateActive(tor, now);
             tr_torrentSetDirty(tor);
 
             tr_statsAddDownloaded(tor->session, e->length);
