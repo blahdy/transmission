@@ -3,8 +3,8 @@ dnl STATUS: "X" for prerelease beta builds,
 dnl         "Z" for unsupported trunk builds,
 dnl         "0" for stable, supported releases
 dnl these should be the only two lines you need to change
-m4_define([user_agent_prefix],[3.00+])
-m4_define([peer_id_prefix],[-TR300Z-])
+m4_define([user_agent_prefix],[2.94])
+m4_define([peer_id_prefix],[-TR2940-])
 
 AC_INIT([transmission],[user_agent_prefix],[https://github.com/transmission/transmission])
 AC_SUBST(USERAGENT_PREFIX,[user_agent_prefix])
@@ -422,7 +422,7 @@ if test "x$upnp_version" = "xunknown" ; then
     char intPort[8];
     char intClient[16];
     upnpDiscover( 2000, NULL, NULL, 0, 0, &errno );
-    UPNP_GetValidIGD( devlist, &urls, &data, lanaddr, sizeof( lanaddr ) ); 
+    UPNP_GetValidIGD( devlist, &urls, &data, lanaddr, sizeof( lanaddr ) );
     UPNP_GetSpecificPortMappingEntry( urls.controlURL, data.first.servicetype,
                         portStr, "TCP", intClient, intPort, NULL, NULL, NULL );
   ]])],[
@@ -445,7 +445,7 @@ if test "x$upnp_version" = "xunknown" ; then
     char intPort[8];
     char intClient[16];
     upnpDiscover( 2000, NULL, NULL, 0 );
-    UPNP_GetValidIGD( devlist, &urls, &data, lanaddr, sizeof( lanaddr ) ); 
+    UPNP_GetValidIGD( devlist, &urls, &data, lanaddr, sizeof( lanaddr ) );
     UPNP_GetSpecificPortMappingEntry( urls.controlURL, data.first.servicetype,
                         portStr, "TCP", intClient, intPort );
   ]])],[
@@ -463,7 +463,7 @@ if test "x$upnp_version" = "xnone" ; then
     LIBUPNP_LIBS_QT="\$\${TRANSMISSION_TOP}/third-party/miniupnpc/libminiupnp.a"
 else
     AC_DEFINE([SYSTEM_MINIUPNP])
-    LIBUPNP_CFLAGS="" 
+    LIBUPNP_CFLAGS=""
     LIBUPNP_LIBS="-lminiupnpc"
     LIBUPNP_LIBS_QT="-lminiupnpc"
 fi
@@ -472,31 +472,31 @@ AC_SUBST(LIBUPNP_LIBS)
 AC_SUBST(LIBUPNP_LIBS_QT)
 
 
- 
+
 
 dnl ----------------------------------------------------------------------------
 dnl
-dnl  Allow usage of system natpmp library 
+dnl  Allow usage of system natpmp library
 
-LIBNATPMP_CFLAGS="-I\$(top_srcdir)/third-party/libnatpmp/" 
-LIBNATPMP_LIBS="\$(top_builddir)/third-party/libnatpmp/libnatpmp.a" 
-LIBNATPMP_LIBS_QT="\$\${TRANSMISSION_TOP}/third-party/libnatpmp/libnatpmp.a" 
-build_bundled_natpmp="yes" 
-AC_ARG_ENABLE([external-natpmp], 
-              AS_HELP_STRING([--enable-external-natpmp],[Use system external-natpmp]), 
-              [want_external_natpmp=${enableval}], 
-              [want_external_natpmp=no]) 
-if test "x$want_external_natpmp" != "xno" ; then 
-	dnl Would be lovely if it had pkgconfig 
-	LIBNATPMP_CFLAGS=""  
-	LIBNATPMP_LIBS="-lnatpmp" 
-	LIBNATPMP_LIBS_QT="-lnatpmp" 
-	build_bundled_natpmp="no" 
-fi 
-AM_CONDITIONAL([BUILD_NATPMP],[test "x$build_bundled_natpmp" = "xyes"]) 
-AC_SUBST(LIBNATPMP_CFLAGS) 
-AC_SUBST(LIBNATPMP_LIBS) 
-AC_SUBST(LIBNATPMP_LIBS_QT) 
+LIBNATPMP_CFLAGS="-I\$(top_srcdir)/third-party/libnatpmp/"
+LIBNATPMP_LIBS="\$(top_builddir)/third-party/libnatpmp/libnatpmp.a"
+LIBNATPMP_LIBS_QT="\$\${TRANSMISSION_TOP}/third-party/libnatpmp/libnatpmp.a"
+build_bundled_natpmp="yes"
+AC_ARG_ENABLE([external-natpmp],
+              AS_HELP_STRING([--enable-external-natpmp],[Use system external-natpmp]),
+              [want_external_natpmp=${enableval}],
+              [want_external_natpmp=no])
+if test "x$want_external_natpmp" != "xno" ; then
+	dnl Would be lovely if it had pkgconfig
+	LIBNATPMP_CFLAGS=""
+	LIBNATPMP_LIBS="-lnatpmp"
+	LIBNATPMP_LIBS_QT="-lnatpmp"
+	build_bundled_natpmp="no"
+fi
+AM_CONDITIONAL([BUILD_NATPMP],[test "x$build_bundled_natpmp" = "xyes"])
+AC_SUBST(LIBNATPMP_CFLAGS)
+AC_SUBST(LIBNATPMP_LIBS)
+AC_SUBST(LIBNATPMP_LIBS_QT)
 
 
 dnl ----------------------------------------------------------------------------

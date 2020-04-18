@@ -963,7 +963,7 @@ static void torrentInit(tr_torrent* tor, tr_ctor const* ctor)
     tor->error = TR_STAT_OK;
     tor->finishedSeedingByIdle = false;
 
-    tor->sequentialDownload = false;
+    tor->sequentialDownload = true;
 
     tr_peerMgrAddTorrent(session->peerMgr, tor);
 
