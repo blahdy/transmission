@@ -3,6 +3,7 @@
 // or any future license endorsed by Mnemosyne LLC.
 // License text can be found in the licenses/ folder.
 
+#include <algorithm>
 #include <array>
 #include <cstddef> // size_t
 #include <map>
@@ -252,7 +253,7 @@ TEST_F(PeerMgrWishlistTest, endgameRequestsEachInFlightBlockFromOnlyOneAdditiona
 
     // A second peer gets no work under normal selection here -- the slow-tail
     // condition endgame exists for.
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 10 });
+    mediator.peer_requests_.emplace_back(10);
     mediator.peer_requests_[0].set_span(0, 10);
 
     auto wishlist = Wishlist{ mediator };
@@ -262,7 +263,7 @@ TEST_F(PeerMgrWishlistTest, endgameRequestsEachInFlightBlockFromOnlyOneAdditiona
     // Peer 1 already has the first half itself (e.g. from an earlier
     // backup), so it is only offered the second half.
     mediator.is_endgame_ = true;
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 10 });
+    mediator.peer_requests_.emplace_back(10);
     mediator.peer_requests_[1].set_span(0, 5);
     static auto constexpr PeerHasFirstHalfInFlight = [](tr_block_index_t block)
     {
@@ -313,8 +314,8 @@ TEST_F(PeerMgrWishlistTest, endgameRejectDoesNotFreeABlockStillHeldByAnotherPeer
 
     // Two peers already hold this block, capping it at two requesters. A
     // reject or cancel of just one must not open the door to a third.
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
+    mediator.peer_requests_.emplace_back(1);
+    mediator.peer_requests_.emplace_back(1);
     mediator.peer_requests_[0].set(0);
     mediator.peer_requests_[1].set(0);
 
@@ -347,8 +348,8 @@ TEST_F(PeerMgrWishlistTest, endgameGuardDoesNotDependOnEndgameStillBeingActive)
     mediator.client_wants_piece_.insert(0);
     mediator.is_endgame_ = true;
 
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
+    mediator.peer_requests_.emplace_back(1);
+    mediator.peer_requests_.emplace_back(1);
     mediator.peer_requests_[0].set(0);
     mediator.peer_requests_[1].set(0);
 
@@ -376,8 +377,8 @@ TEST_F(PeerMgrWishlistTest, cancelForAnAlreadyDeliveredBlockDoesNotReviveIt)
     mediator.is_endgame_ = true;
 
     // Two peers hold the block, an endgame duplicate.
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
+    mediator.peer_requests_.emplace_back(1);
+    mediator.peer_requests_.emplace_back(1);
     mediator.peer_requests_[0].set(0);
     mediator.peer_requests_[1].set(0);
 
@@ -406,8 +407,8 @@ TEST_F(PeerMgrWishlistTest, endgameChokeDoesNotFreeABlockStillHeldByAnotherPeer)
     mediator.client_wants_piece_.insert(0);
     mediator.is_endgame_ = true;
 
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
-    mediator.peer_requests_.emplace_back(tr_bitfield{ 1 });
+    mediator.peer_requests_.emplace_back(1);
+    mediator.peer_requests_.emplace_back(1);
     mediator.peer_requests_[0].set(0);
     mediator.peer_requests_[1].set(0);
 
@@ -468,7 +469,9 @@ TEST_F(PeerMgrWishlistTest, endgameStateMatchesActiveRequestsThroughRandomEvents
             [block](auto const& requests) { return requests.test(block); });
     };
 
-    auto random = std::minstd_rand{ 0x8935U };
+    auto const seed = std::array<uint32_t, 1>{ 0x8935U };
+    auto seed_sequence = std::seed_seq{ seed.begin(), seed.end() };
+    auto random = std::minstd_rand{ seed_sequence };
     for (auto iteration = size_t{}; iteration < 1000U; ++iteration)
     {
         auto const peer = iteration % PeerCount;
@@ -518,23 +521,22 @@ TEST_F(PeerMgrWishlistTest, endgameStateMatchesActiveRequestsThroughRandomEvents
         // the plain unrequested pool as long as the other one remains.
         auto const first = static_cast<tr_block_index_t>(random() % BlockCount);
         auto block = first;
-        do
+        while (is_complete[block] || active_request_count(block) == 0U)
         {
-            if (!is_complete[block] && active_request_count(block) >= 1U)
+            block = (block + 1U) % BlockCount;
+            if (block == first)
             {
                 break;
             }
-            block = (block + 1U) % BlockCount;
-        } while (block != first);
+        }
 
         if (is_complete[block] || active_request_count(block) == 0U)
         {
             break;
         }
 
-        auto const request_peer = std::find_if(
-            std::begin(mediator.peer_requests_),
-            std::end(mediator.peer_requests_),
+        auto const request_peer = std::ranges::find_if(
+            mediator.peer_requests_,
             [block](auto const& requests) { return requests.test(block); });
         ASSERT_NE(std::end(mediator.peer_requests_), request_peer);
         request_peer->unset(block);
@@ -543,12 +545,12 @@ TEST_F(PeerMgrWishlistTest, endgameStateMatchesActiveRequestsThroughRandomEvents
         switch (random() % 3U)
         {
         case 0U:
-            is_available[block] = remaining == 0U;
+            is_available[block] = remaining == 0;
             wishlist.on_got_reject(block);
             break;
 
         case 1U:
-            is_available[block] = remaining == 0U;
+            is_available[block] = remaining == 0;
             wishlist.on_sent_cancel(block);
             break;
 
