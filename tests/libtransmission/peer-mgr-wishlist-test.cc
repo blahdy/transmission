@@ -442,6 +442,48 @@ TEST_F(PeerMgrWishlistTest, endgameChokeDoesNotFreeABlockStillHeldByAnotherPeer)
     EXPECT_FALSE(std::empty(wishlist.next(1, PeerHasAllPieces)));
 }
 
+TEST_F(PeerMgrWishlistTest, endgameSkipsBlockAlreadyRequestedByWebseed)
+{
+    auto mediator = MockMediator{};
+    mediator.block_span_[0] = { .begin = 0, .end = 1 };
+    mediator.piece_replication_[0] = 1;
+    mediator.client_wants_piece_.insert(0);
+    mediator.is_endgame_ = true;
+
+    // Only a webseed holds this block; count_active_requests() alone would
+    // read 0 and wrongly offer it to a peer too.
+    mediator.webseed_requests_.insert(0);
+
+    auto wishlist = Wishlist{ mediator };
+    wishlist.on_sent_request({ .begin = 0, .end = 1 });
+
+    EXPECT_TRUE(std::empty(wishlist.next(1, PeerHasAllPieces)));
+}
+
+TEST_F(PeerMgrWishlistTest, rejectDoesNotFreeABlockStillHeldByAWebseed)
+{
+    auto mediator = MockMediator{};
+    mediator.block_span_[0] = { .begin = 0, .end = 1 };
+    mediator.piece_replication_[0] = 1;
+    mediator.client_wants_piece_.insert(0);
+    mediator.is_endgame_ = true;
+
+    // Peer and webseed both hold the block. The peer's request is rejected,
+    // the webseed's isn't, so the block stays out of the pool.
+    mediator.peer_requests_.emplace_back(1);
+    mediator.peer_requests_[0].set(0);
+    mediator.webseed_requests_.insert(0);
+
+    auto wishlist = Wishlist{ mediator };
+    wishlist.on_sent_request({ .begin = 0, .end = 1 });
+
+    mediator.peer_requests_[0].unset(0);
+    wishlist.on_got_reject(0);
+
+    mediator.is_endgame_ = false;
+    EXPECT_TRUE(std::empty(wishlist.next(1, PeerHasAllPieces)));
+}
+
 TEST_F(PeerMgrWishlistTest, endgameStateMatchesActiveRequestsThroughRandomEvents)
 {
     auto constexpr BlockCount = tr_block_index_t{ 64 };

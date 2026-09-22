@@ -383,7 +383,11 @@ void tr_webseed_task::use_fetched_blocks()
 
         if (tor.has_block(loc_.block))
         {
+            // A peer delivered this block first (endgame duplicate). Still clear
+            // the bit, or it stays set forever and blocks re-requesting if the
+            // peer's copy later fails its hash check.
             content_.drain(block_size);
+            webseed_->active_requests.unset(loc_.block);
         }
         else
         {
