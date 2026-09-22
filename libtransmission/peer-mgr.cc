@@ -457,16 +457,6 @@ public:
 
         [[nodiscard]] uint8_t count_active_requests(tr_block_index_t const block) const override
         {
-            // Do not duplicate requests for blocks already in flight to a webseed,
-            // as HTTP webseeds cannot receive CANCEL protocol messages.
-            for (auto const& webseed : swarm_.webseeds)
-            {
-                if (webseed->active_requests.test(block))
-                {
-                    return 2U;
-                }
-            }
-
             auto n_requesters = uint8_t{};
             for (auto const& peer : swarm_.peers)
             {
@@ -477,6 +467,16 @@ public:
             }
 
             return n_requesters;
+        }
+
+        [[nodiscard]] bool is_requested_by_webseed(tr_block_index_t const block) const override
+        {
+            // HTTP webseeds cannot receive BitTorrent CANCEL messages, so a block
+            // a webseed is already requesting is never a candidate for anyone else.
+            return std::any_of(
+                std::begin(swarm_.webseeds),
+                std::end(swarm_.webseeds),
+                [block](auto const& webseed) { return webseed->active_requests.test(block); });
         }
 
         [[nodiscard]] bool is_sequential_download() const override
@@ -1275,11 +1275,7 @@ void tr_peerMgrFree(tr_peerMgr* manager)
  *    tr_peerMgrGetNextRequests() is called.
  */
 
-std::vector<tr_block_span_t> tr_peerMgrGetNextRequests(
-    tr_torrent* torrent,
-    tr_peer const* peer,
-    size_t numwant,
-    std::optional<tr_block_index_t> const ignore_block)
+std::vector<tr_block_span_t> tr_peerMgrGetNextRequests(tr_torrent* torrent, tr_peer const* peer, size_t numwant)
 {
     TR_ASSERT(!torrent->is_done());
 
@@ -1288,8 +1284,7 @@ std::vector<tr_block_span_t> tr_peerMgrGetNextRequests(
         return controller->next(
             numwant,
             [peer](tr_piece_index_t p) { return peer->has_piece(p); },
-            [peer, ignore_block](tr_block_index_t b)
-            { return (ignore_block && *ignore_block == b) || peer->active_requests.test(b); });
+            [peer](tr_block_index_t b) { return peer->active_requests.test(b) || peer->is_refill_excluded(b); });
     }
 
     return {};

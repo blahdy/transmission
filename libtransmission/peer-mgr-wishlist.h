@@ -35,7 +35,12 @@ public:
         [[nodiscard]] virtual bool client_has_piece(tr_piece_index_t piece) const = 0;
         [[nodiscard]] virtual bool client_wants_piece(tr_piece_index_t piece) const = 0;
         [[nodiscard]] virtual bool is_endgame() const = 0;
+        // Requesters among connected BitTorrent peers, capped at 2 since that's
+        // the wishlist's max. Does not count webseeds; see is_requested_by_webseed().
         [[nodiscard]] virtual uint8_t count_active_requests(tr_block_index_t block) const = 0;
+        // Webseeds can't receive BitTorrent CANCEL messages, so a block they're
+        // holding is always treated as saturated, separate from the peer count.
+        [[nodiscard]] virtual bool is_requested_by_webseed(tr_block_index_t block) const = 0;
         [[nodiscard]] virtual bool is_sequential_download() const = 0;
         [[nodiscard]] virtual tr_piece_index_t sequential_download_from_piece() const = 0;
         [[nodiscard]] virtual size_t count_piece_replication(tr_piece_index_t piece) const = 0;
@@ -334,10 +339,12 @@ private:
 
     // self_bit_still_set: reset_block()'s caller already cleared its own bit
     // before calling; reset_blocks_bitfield()'s has not, so it always counts
-    // as one requester.
+    // as one requester. A webseed holding the block always counts as "other
+    // requester remains", since it can't be re-requested elsewhere anyway.
     [[nodiscard]] bool other_requester_remains(tr_block_index_t const block, bool const self_bit_still_set) const
     {
-        return mediator_.count_active_requests(block) > (self_bit_still_set ? 1U : 0U);
+        return mediator_.is_requested_by_webseed(block) ||
+            mediator_.count_active_requests(block) > (self_bit_still_set ? 1U : 0U);
     }
 
     // ---

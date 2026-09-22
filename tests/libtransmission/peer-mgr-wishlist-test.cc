@@ -35,6 +35,7 @@ protected:
         // count_active_requests() scans these the way the real mediator scans
         // connected peers.
         mutable std::vector<tr_bitfield> peer_requests_;
+        mutable std::set<tr_block_index_t> webseed_requests_;
         bool is_endgame_ = false;
         bool is_sequential_download_ = false;
         tr_piece_index_t sequential_download_from_piece_ = 0;
@@ -72,6 +73,11 @@ protected:
                 }
             }
             return count;
+        }
+
+        [[nodiscard]] bool is_requested_by_webseed(tr_block_index_t block) const override
+        {
+            return webseed_requests_.contains(block);
         }
 
         [[nodiscard]] bool is_sequential_download() const override

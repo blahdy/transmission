@@ -129,7 +129,7 @@ std::vector<tr_block_span_t> Wishlist::next(
                     continue;
                 }
 
-                if (mediator_.count_active_requests(block) >= 2U)
+                if (mediator_.is_requested_by_webseed(block) || mediator_.count_active_requests(block) >= 2U)
                 {
                     continue;
                 }

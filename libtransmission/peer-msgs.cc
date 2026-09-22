@@ -420,6 +420,11 @@ public:
         }
     }
 
+    [[nodiscard]] bool is_refill_excluded(tr_block_index_t block) const noexcept override
+    {
+        return refill_exclude_block_ == block;
+    }
+
     void set_choke(bool peer_is_choked) override
     {
         auto const now = tr_time();
@@ -739,6 +744,10 @@ private:
     bool client_sent_ltep_handshake_ = false;
 
     size_t desired_request_count_ = 0;
+
+    // See is_refill_excluded(); only set for the duration of a
+    // maybe_send_block_requests() call.
+    std::optional<tr_block_index_t> refill_exclude_block_;
 
     uint8_t ut_pex_id_ = 0;
     uint8_t ut_metadata_id_ = 0;
@@ -2068,7 +2077,10 @@ void tr_peerMsgsImpl::maybe_send_block_requests(std::optional<tr_block_index_t> 
     }
 
     auto const n_wanted = desired_request_count_ - n_active;
-    if (auto const requests = tr_peerMgrGetNextRequests(&tor_, this, n_wanted, ignore_block); !std::empty(requests))
+    refill_exclude_block_ = ignore_block;
+    auto const requests = tr_peerMgrGetNextRequests(&tor_, this, n_wanted);
+    refill_exclude_block_.reset();
+    if (!std::empty(requests))
     {
         request_blocks(std::data(requests), std::size(requests));
     }
