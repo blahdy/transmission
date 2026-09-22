@@ -511,10 +511,7 @@ TEST_F(PeerMgrWishlistTest, endgameStateMatchesActiveRequestsThroughRandomEvents
 
     auto const active_request_count = [&mediator](tr_block_index_t const block)
     {
-        return std::count_if(
-            std::begin(mediator.peer_requests_),
-            std::end(mediator.peer_requests_),
-            [block](auto const& requests) { return requests.test(block); });
+        return std::ranges::count_if(mediator.peer_requests_, [block](auto const& requests) { return requests.test(block); });
     };
 
     auto const seed = std::array<uint32_t, 1>{ 0x8935U };

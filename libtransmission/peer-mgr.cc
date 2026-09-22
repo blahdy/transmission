@@ -473,9 +473,8 @@ public:
         {
             // HTTP webseeds cannot receive BitTorrent CANCEL messages, so a block
             // a webseed is already requesting is never a candidate for anyone else.
-            return std::any_of(
-                std::begin(swarm_.webseeds),
-                std::end(swarm_.webseeds),
+            return std::ranges::any_of(
+                swarm_.webseeds,
                 [block](auto const& webseed) { return webseed->active_requests.test(block); });
         }
 
