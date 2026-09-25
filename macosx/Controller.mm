@@ -4299,7 +4299,7 @@ static void removeKeRangerRansomware()
         item.toolTip = NSLocalizedString(@"Remove selected transfers", "Remove toolbar item -> tooltip");
         item.image = [NSImage imageWithSystemSymbolName:@"nosign" accessibilityDescription:nil];
         item.target = self;
-        item.action = @selector(removeNoDelete:);
+        item.action = @selector(removeDeleteData:);
         item.visibilityPriority = NSToolbarItemVisibilityPriorityHigh;
 
         return item;
