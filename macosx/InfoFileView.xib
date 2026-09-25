@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24412" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="24765" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24412"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24765"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -142,7 +141,7 @@
                                     </tableColumn>
                                 </tableColumns>
                                 <connections>
-                                    <action trigger="doubleAction" selector="revealFile:" target="15" id="HLe-44-iu9"/>
+                                    <action trigger="doubleAction" selector="openFile:" target="15" id="HLe-44-iu9"/>
                                     <outlet property="dataSource" destination="15" id="19"/>
                                     <outlet property="delegate" destination="15" id="20"/>
                                 </connections>
