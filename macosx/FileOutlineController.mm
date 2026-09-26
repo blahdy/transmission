@@ -415,6 +415,19 @@ typedef NS_ENUM(NSUInteger, FilePriorityMenuTag) { //
         [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:paths];
     }
 }
+- (void)openFile:(id)sender
+
+{
+    NSIndexSet* indexes = self.fOutline.selectedRowIndexes;
+    for (NSUInteger i = indexes.firstIndex; i != NSNotFound; i = [indexes indexGreaterThanIndex:i])
+    {
+        NSString* path = [self.torrent fileLocation:[self.fOutline itemAtRow:i]];
+        if (path)
+        {
+            [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:path]];
+        }
+    }
+}
 
 - (void)renameSelected:(id)sender
 {
